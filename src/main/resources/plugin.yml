@@ -1,0 +1,22 @@
+name: AgentSensorPlugin
+version: ${project.version}
+main: com.mineagents.sensors.AgentSensorPlugin
+api-version: 1.21
+author: AIAgent
+description: Enhanced sensor API for AI agents with auto-update from TeamCity
+website: http://145.239.253.161:8111/
+
+commands:
+  agentsensor:
+    description: Manage AgentSensor plugin
+    usage: /agentsensor <reload|update|status|sensors>
+    permission: agentsensor.admin
+    aliases: [as, sensor]
+
+permissions:
+  agentsensor.admin:
+    description: Allows use of all AgentSensor commands
+    default: op
+  agentsensor.api:
+    description: Allows access to sensor API
+    default: true

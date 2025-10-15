@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TeamCity Build Configuration for AgentSensorPlugin
+
+  Setup Instructions:
+  1. Create new project in TeamCity: http://145.239.253.161:8111/
+  2. VCS Root: Point to this repository
+  3. Build Configuration ID: AgentSensorPlugin
+  4. Add Build Steps as defined below
+  5. Configure artifact paths: target/AgentSensorPlugin-*.jar => AgentSensorPlugin.jar
+-->
+<project-template>
+    <project>
+        <name>AgentSensorPlugin</name>
+        <id>AgentSensorPlugin</id>
+        <description>Auto-updating Minecraft plugin for AI agent sensors</description>
+    </project>
+
+    <build-type>
+        <id>AgentSensorPlugin</id>
+        <name>Build and Test</name>
+
+        <!-- VCS Settings -->
+        <vcs-settings>
+            <vcs-entry-ref root-id="Your_Git_Repository"/>
+        </vcs-settings>
+
+        <!-- Build Steps -->
+        <build-steps>
+            <!-- Step 1: Clean -->
+            <step name="Clean" type="maven">
+                <param name="goals">clean</param>
+                <param name="pomLocation">AgentSensorPlugin/pom.xml</param>
+            </step>
+
+            <!-- Step 2: Compile -->
+            <step name="Compile" type="maven">
+                <param name="goals">compile</param>
+                <param name="pomLocation">AgentSensorPlugin/pom.xml</param>
+            </step>
+
+            <!-- Step 3: Package -->
+            <step name="Package" type="maven">
+                <param name="goals">package</param>
+                <param name="pomLocation">AgentSensorPlugin/pom.xml</param>
+            </step>
+        </build-steps>
+
+        <!-- Artifact Paths -->
+        <artifact-dependencies>
+            <artifact>
+                <path>AgentSensorPlugin/target/AgentSensorPlugin-*.jar</path>
+                <destination>AgentSensorPlugin.jar</destination>
+            </artifact>
+        </artifact-dependencies>
+
+        <!-- Build Triggers -->
+        <triggers>
+            <!-- Trigger on VCS changes -->
+            <trigger type="vcsTrigger">
+                <param name="quietPeriod">60</param>
+            </trigger>
+
+            <!-- Schedule: Build every day at 2 AM -->
+            <trigger type="schedulingTrigger">
+                <param name="cronExpression">0 2 * * * ?</param>
+            </trigger>
+        </triggers>
+
+        <!-- Build Features -->
+        <features>
+            <!-- Automatic merge of changes -->
+            <feature type="merge">
+                <param name="mergeEnabled">true</param>
+            </feature>
+        </features>
+    </build-type>
+</project-template>
