@@ -1,0 +1,25 @@
+# AgentSensorPlugin Configuration
+
+# Auto-update settings
+auto-update:
+  enabled: true
+  check-interval: 1800  # seconds (30 minutes)
+
+# WebSocket server settings
+websocket:
+  enabled: true
+  port: 3002
+  auth-token: "mineagent-sensor-2024"
+
+# Sensor settings
+sensors:
+  block-radius: 32      # blocks
+  entity-radius: 32     # blocks
+  update-interval: 40   # ticks (2 seconds)
+
+# Debug settings
+debug:
+  enabled: false
+  log-sensor-data: false
+  log-updates: true
+  log-websocket: true
