@@ -93,6 +93,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
                                 <!-- Relocate dependencies to avoid conflicts -->
                                 <relocation>
