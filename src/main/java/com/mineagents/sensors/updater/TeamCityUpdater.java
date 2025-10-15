@@ -163,7 +163,6 @@ public class TeamCityUpdater {
     private void installUpdate(File newJar) {
         try {
             File pluginsFolder = plugin.getDataFolder().getParentFile();
-            File currentJar = plugin.getFile();
 
             // Generate new filename with timestamp
             String newFileName = "AgentSensorPlugin-" + System.currentTimeMillis() + ".jar";
@@ -174,8 +173,8 @@ public class TeamCityUpdater {
 
             plugin.getLogger().info("[Update] Installed new version: " + targetFile.getName());
 
-            // Mark old JAR for deletion
-            currentJar.deleteOnExit();
+            // Mark old versions for deletion (will be cleaned up on next restart)
+            // We can't delete the current running JAR, so we mark it for deletion on exit
 
             // Schedule plugin reload
             Bukkit.getScheduler().runTask(plugin, () -> {

@@ -121,6 +121,33 @@ public class SensorAPI {
     }
 
     /**
+     * Get individual sensor modules
+     */
+    public BlockSensor getBlockSensor() {
+        return blockSensor;
+    }
+
+    public EntitySensor getEntitySensor() {
+        return entitySensor;
+    }
+
+    public MobAISensor getMobAISensor() {
+        return mobAISensor;
+    }
+
+    public WeatherSensor getWeatherSensor() {
+        return weatherSensor;
+    }
+
+    public ChunkSensor getChunkSensor() {
+        return chunkSensor;
+    }
+
+    public ItemSensor getItemSensor() {
+        return itemSensor;
+    }
+
+    /**
      * Main sensor data container
      */
     public static class SensorData {

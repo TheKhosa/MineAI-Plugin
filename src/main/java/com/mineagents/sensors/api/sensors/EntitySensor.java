@@ -46,9 +46,19 @@ public class EntitySensor {
     }
 
     private String getAIState(LivingEntity entity) {
-        if (entity.getTarget() != null) {
-            return "ATTACKING";
-        } else if (entity.getVelocity().length() > 0.1) {
+        try {
+            // Try to get target (may not exist in all Spigot versions)
+            if (entity instanceof org.bukkit.entity.Mob) {
+                org.bukkit.entity.Mob mob = (org.bukkit.entity.Mob) entity;
+                if (mob.getTarget() != null) {
+                    return "ATTACKING";
+                }
+            }
+        } catch (Exception e) {
+            // Fallback if getTarget() not available
+        }
+
+        if (entity.getVelocity().length() > 0.1) {
             return "MOVING";
         } else {
             return "IDLE";

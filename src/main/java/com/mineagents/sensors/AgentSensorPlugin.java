@@ -3,7 +3,7 @@ package com.mineagents.sensors;
 import com.mineagents.sensors.api.SensorAPI;
 import com.mineagents.sensors.updater.TeamCityUpdater;
 import com.mineagents.sensors.websocket.SensorBroadcaster;
-import com.mineagents.sensors.websocket.WebSocketServer;
+import com.mineagents.sensors.websocket.SensorWebSocketServer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -27,7 +27,7 @@ public class AgentSensorPlugin extends JavaPlugin {
     private static AgentSensorPlugin instance;
     private SensorAPI sensorAPI;
     private TeamCityUpdater updater;
-    private WebSocketServer webSocketServer;
+    private SensorWebSocketServer webSocketServer;
     private SensorBroadcaster sensorBroadcaster;
     private boolean updateCheckEnabled = true;
 
@@ -89,7 +89,7 @@ public class AgentSensorPlugin extends JavaPlugin {
 
         // Initialize WebSocket server
         try {
-            webSocketServer = new WebSocketServer(this, WEBSOCKET_PORT, WEBSOCKET_AUTH_TOKEN);
+            webSocketServer = new SensorWebSocketServer(this, WEBSOCKET_PORT, WEBSOCKET_AUTH_TOKEN);
             webSocketServer.start();
             getLogger().info("[WebSocket] Server started on port " + WEBSOCKET_PORT);
         } catch (Exception e) {

@@ -19,13 +19,13 @@ import java.util.logging.Level;
 public class SensorBroadcaster extends BukkitRunnable {
 
     private final AgentSensorPlugin plugin;
-    private final WebSocketServer webSocketServer;
+    private final SensorWebSocketServer webSocketServer;
     private final SensorAPI sensorAPI;
     private final Gson gson;
     private final int sensorRadius;
     private final int updateInterval;
 
-    public SensorBroadcaster(AgentSensorPlugin plugin, WebSocketServer webSocketServer, int sensorRadius, int updateInterval) {
+    public SensorBroadcaster(AgentSensorPlugin plugin, SensorWebSocketServer webSocketServer, int sensorRadius, int updateInterval) {
         this.plugin = plugin;
         this.webSocketServer = webSocketServer;
         this.sensorAPI = plugin.getSensorAPI();

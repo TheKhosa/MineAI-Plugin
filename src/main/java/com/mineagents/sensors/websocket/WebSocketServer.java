@@ -18,7 +18,7 @@ import java.util.logging.Level;
  * WebSocket server for real-time sensor data streaming
  * Allows Node.js agents to receive server-side sensor data
  */
-public class WebSocketServer extends WebSocketServer {
+public class SensorWebSocketServer extends WebSocketServer {
 
     private final AgentSensorPlugin plugin;
     private final Gson gson;
@@ -26,7 +26,7 @@ public class WebSocketServer extends WebSocketServer {
     private final Map<WebSocket, String> clientBotNames;
     private final String authToken;
 
-    public WebSocketServer(AgentSensorPlugin plugin, int port, String authToken) {
+    public SensorWebSocketServer(AgentSensorPlugin plugin, int port, String authToken) {
         super(new InetSocketAddress(port));
         this.plugin = plugin;
         this.gson = new Gson();
