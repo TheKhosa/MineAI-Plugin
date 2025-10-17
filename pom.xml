@@ -81,6 +81,20 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven JAR Plugin (include filtered resources) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <!-- Maven Shade Plugin (bundle dependencies) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -94,6 +108,14 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <!-- Ensure resources are included in the shaded JAR -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resources>
+                                        <resource>.class</resource>
+                                    </resources>
+                                </transformer>
+                            </transformers>
                             <relocations>
                                 <!-- Relocate dependencies to avoid conflicts -->
                                 <relocation>
