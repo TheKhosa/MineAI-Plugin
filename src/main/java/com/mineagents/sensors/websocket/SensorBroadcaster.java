@@ -101,8 +101,9 @@ public class SensorBroadcaster extends BukkitRunnable {
      * Start the broadcaster with configured interval
      */
     public void start() {
-        // Run async to avoid blocking main thread
-        this.runTaskTimerAsynchronously(plugin, 0L, updateInterval);
-        plugin.getLogger().info("[SensorBroadcaster] Started with " + updateInterval + " tick interval");
+        // Run on main thread to allow safe Bukkit API access
+        // Block state queries must run synchronously
+        this.runTaskTimer(plugin, 0L, updateInterval);
+        plugin.getLogger().info("[SensorBroadcaster] Started with " + updateInterval + " tick interval (sync mode)");
     }
 }
