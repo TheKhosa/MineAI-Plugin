@@ -81,6 +81,19 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven JAR Plugin (skip default JAR creation) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Maven Shade Plugin (bundle dependencies) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -94,6 +107,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
                             <relocations>
                                 <!-- Relocate dependencies to avoid conflicts -->
                                 <relocation>
