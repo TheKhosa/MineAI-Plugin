@@ -26,12 +26,19 @@ public class BlockSensor {
             for (int y = -radius; y <= radius; y++) {
                 for (int z = -radius; z <= radius; z++) {
                     Block block = center.getWorld().getBlockAt(centerX + x, centerY + y, centerZ + z);
+                    Material type = block.getType();
+
+                    // PERFORMANCE FIX: Skip air and common terrain blocks to reduce data size
+                    // This prevents stack overflow when processing 33k+ blocks
+                    if (shouldSkipBlock(type)) {
+                        continue;
+                    }
 
                     SensorAPI.BlockData data = new SensorAPI.BlockData();
                     data.x = block.getX();
                     data.y = block.getY();
                     data.z = block.getZ();
-                    data.type = block.getType().name();
+                    data.type = type.name();
                     data.lightLevel = block.getLightLevel();
                     data.isPassable = block.isPassable();
                     data.metadata = getBlockMetadata(block);
@@ -44,7 +51,38 @@ public class BlockSensor {
         return blocks;
     }
 
-    private Map<String, Object> getBlockMetadata(Block block) {
+    /**
+     * Determine if a block should be skipped to reduce data size
+     * Skips air, cave air, void air, stone, dirt, grass (common terrain)
+     * Keeps ores, structures, fluids, and interactive blocks
+     */
+    private boolean shouldSkipBlock(Material type) {
+        switch (type) {
+            // Skip all air variants
+            case AIR:
+            case CAVE_AIR:
+            case VOID_AIR:
+                return true;
+
+            // Skip extremely common terrain blocks (reduces data by ~90%)
+            case STONE:
+            case DIRT:
+            case GRASS_BLOCK:
+            case GRAVEL:
+            case SAND:
+            case SANDSTONE:
+            case ANDESITE:
+            case DIORITE:
+            case GRANITE:
+                return true;
+
+            // Keep everything else (ores, structures, fluids, interactive blocks)
+            default:
+                return false;
+        }
+    }
+
+        private Map<String, Object> getBlockMetadata(Block block) {
         Map<String, Object> metadata = new HashMap<>();
 
         // Add block-specific metadata

@@ -40,7 +40,7 @@ public class AgentSensorPlugin extends JavaPlugin {
     // WebSocket Configuration
     private static final int WEBSOCKET_PORT = 3002;
     private static final String WEBSOCKET_AUTH_TOKEN = "mineagent-sensor-2024";
-    private static final int SENSOR_RADIUS = 32; // blocks
+    private static final int SENSOR_RADIUS = 16; // blocks (reduced from 32 to prevent stack overflow - was 274k blocks!)
     private static final int SENSOR_UPDATE_INTERVAL = 40; // ticks (2 seconds)
 
     @Override

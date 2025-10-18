@@ -195,6 +195,7 @@ public class SensorAPI {
     public static class EntityData {
         public String uuid;
         public String type;
+        public String name; // ADDED: Entity name field to prevent undefined errors in ML encoder
         public double x, y, z;
         public float yaw, pitch;
         public double health;

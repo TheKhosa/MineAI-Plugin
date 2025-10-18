@@ -21,7 +21,14 @@ public class EntitySensor {
             SensorAPI.EntityData data = new SensorAPI.EntityData();
 
             data.uuid = entity.getUniqueId().toString();
-            data.type = entity.getType().name();
+
+            // SAFETY FIX: Ensure type is never null (fixes "Cannot read properties of undefined" error)
+            data.type = entity.getType() != null ? entity.getType().name() : "UNKNOWN";
+
+            // SAFETY FIX: Ensure name is never null
+            String customName = entity.getCustomName();
+            data.name = customName != null ? customName : entity.getType().name().toLowerCase();
+
             data.x = entity.getLocation().getX();
             data.y = entity.getLocation().getY();
             data.z = entity.getLocation().getZ();
