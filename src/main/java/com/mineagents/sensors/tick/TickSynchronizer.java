@@ -1,7 +1,7 @@
 package com.mineagents.sensors.tick;
 
 import com.mineagents.sensors.AgentSensorPlugin;
-import com.mineagents.sensors.websocket.SensorBroadcaster;
+import com.mineagents.sensors.websocket.SensorWebSocketServer;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.json.JSONObject;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class TickSynchronizer {
     private final AgentSensorPlugin plugin;
-    private final SensorBroadcaster broadcaster;
+    private final SensorWebSocketServer webSocketServer;
     private final AtomicLong currentTick;
     private final Map<String, Long> agentLastAction;
     private boolean enabled;
@@ -39,9 +39,9 @@ public class TickSynchronizer {
     private long lastEvolutionTick = 0;
     private long lastCheckpointTick = 0;
 
-    public TickSynchronizer(AgentSensorPlugin plugin, SensorBroadcaster broadcaster) {
+    public TickSynchronizer(AgentSensorPlugin plugin, SensorWebSocketServer webSocketServer) {
         this.plugin = plugin;
-        this.broadcaster = broadcaster;
+        this.webSocketServer = webSocketServer;
         this.currentTick = new AtomicLong(0);
         this.agentLastAction = new HashMap<>();
         this.enabled = true;
@@ -103,7 +103,7 @@ public class TickSynchronizer {
         message.put("tps", Bukkit.getTPS()[0]);  // Current TPS
         message.put("onlinePlayers", Bukkit.getOnlinePlayers().size());
 
-        broadcaster.broadcast(message.toString());
+        webSocketServer.broadcast(message.toString());
     }
 
     /**
@@ -116,7 +116,7 @@ public class TickSynchronizer {
         message.put("timestamp", System.currentTimeMillis());
         message.put("ticksSinceLastCheckpoint", tick - lastCheckpointTick);
 
-        broadcaster.broadcast(message.toString());
+        webSocketServer.broadcast(message.toString());
         plugin.getLogger().info("[TickSync] Checkpoint triggered at tick " + tick);
     }
 
@@ -130,7 +130,7 @@ public class TickSynchronizer {
         message.put("timestamp", System.currentTimeMillis());
         message.put("ticksSinceLastEvolution", tick - lastEvolutionTick);
 
-        broadcaster.broadcast(message.toString());
+        webSocketServer.broadcast(message.toString());
         plugin.getLogger().info("[TickSync] Evolution triggered at tick " + tick);
     }
 

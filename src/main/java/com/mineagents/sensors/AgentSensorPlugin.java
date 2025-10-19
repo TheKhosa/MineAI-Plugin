@@ -106,8 +106,8 @@ public class AgentSensorPlugin extends JavaPlugin {
         }
 
         // Initialize tick synchronizer for ML training
-        if (sensorBroadcaster != null) {
-            tickSynchronizer = new TickSynchronizer(this, sensorBroadcaster);
+        if (webSocketServer != null) {
+            tickSynchronizer = new TickSynchronizer(this, webSocketServer);
             tickSynchronizer.start();
             getLogger().info("[TickSync] Tick synchronization enabled for ML training");
         }
