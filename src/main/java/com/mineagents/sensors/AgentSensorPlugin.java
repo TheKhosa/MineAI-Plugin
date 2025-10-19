@@ -1,6 +1,7 @@
 package com.mineagents.sensors;
 
 import com.mineagents.sensors.api.SensorAPI;
+import com.mineagents.sensors.tick.TickSynchronizer;
 import com.mineagents.sensors.updater.TeamCityUpdater;
 import com.mineagents.sensors.websocket.SensorBroadcaster;
 import com.mineagents.sensors.websocket.SensorWebSocketServer;
@@ -29,6 +30,7 @@ public class AgentSensorPlugin extends JavaPlugin {
     private TeamCityUpdater updater;
     private SensorWebSocketServer webSocketServer;
     private SensorBroadcaster sensorBroadcaster;
+    private TickSynchronizer tickSynchronizer;
     private boolean updateCheckEnabled = true;
 
     // TeamCity Configuration
@@ -103,12 +105,29 @@ public class AgentSensorPlugin extends JavaPlugin {
             getLogger().info("[SensorBroadcaster] Started with " + SENSOR_RADIUS + " block radius");
         }
 
+        // Initialize tick synchronizer for ML training
+        if (sensorBroadcaster != null) {
+            tickSynchronizer = new TickSynchronizer(this, sensorBroadcaster);
+            tickSynchronizer.start();
+            getLogger().info("[TickSync] Tick synchronization enabled for ML training");
+        }
+
         getLogger().info("Agent Sensor Plugin enabled successfully!");
     }
 
     @Override
     public void onDisable() {
         getLogger().info("Agent Sensor Plugin disabled");
+
+        // Shutdown tick synchronizer
+        if (tickSynchronizer != null) {
+            try {
+                tickSynchronizer.setEnabled(false);
+                getLogger().info("[TickSync] Stopped");
+            } catch (Exception e) {
+                getLogger().log(Level.WARNING, "[TickSync] Error during shutdown", e);
+            }
+        }
 
         // Shutdown sensor broadcaster
         if (sensorBroadcaster != null) {
