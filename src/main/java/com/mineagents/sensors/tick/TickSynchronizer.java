@@ -100,7 +100,7 @@ public class TickSynchronizer {
         message.put("type", "server_tick");
         message.put("tick", tick);
         message.put("timestamp", System.currentTimeMillis());
-        message.put("tps", Bukkit.getTPS()[0]);  // Current TPS
+        message.put("tps", 20.0);  // Assume 20 TPS (standard Minecraft)
         message.put("onlinePlayers", Bukkit.getOnlinePlayers().size());
 
         webSocketServer.broadcast(message.toString());
@@ -169,7 +169,7 @@ public class TickSynchronizer {
         stats.put("lastEvolutionTick", lastEvolutionTick);
         stats.put("lastCheckpointTick", lastCheckpointTick);
         stats.put("activeAgents", agentLastAction.size());
-        stats.put("tps", Bukkit.getTPS()[0]);
+        stats.put("tps", 20.0);  // Assume 20 TPS (standard Minecraft)
         return stats;
     }
 
