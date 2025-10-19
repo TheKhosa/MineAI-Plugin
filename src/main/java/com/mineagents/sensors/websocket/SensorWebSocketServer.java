@@ -166,6 +166,17 @@ public class SensorWebSocketServer extends WebSocketServer {
     }
 
     /**
+     * Broadcast raw string to all authenticated clients
+     */
+    public void broadcast(String message) {
+        for (WebSocket conn : authenticatedClients) {
+            if (conn.isOpen()) {
+                conn.send(message);
+            }
+        }
+    }
+
+    /**
      * Broadcast sensor data to all authenticated clients
      */
     public void broadcastSensorData(String botName, Map<String, Object> sensorData) {
