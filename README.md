@@ -81,7 +81,7 @@ Edit `AgentSensorPlugin.java` to configure TeamCity:
 ```java
 private static final String TEAMCITY_URL = "http://145.239.253.161:8111";
 private static final String TEAMCITY_USERNAME = "AIAgent";
-private static final String TEAMCITY_PASSWORD = "D#hp^uC5RuJcn%";
+private static final String TEAMCITY_PASSWORD = "";
 private static final String BUILD_TYPE_ID = "AgentSensorPlugin";
 ```
 
