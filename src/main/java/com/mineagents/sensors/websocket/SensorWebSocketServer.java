@@ -2,7 +2,10 @@ package com.mineagents.sensors.websocket;
 
 import com.google.gson.Gson;
 import com.mineagents.sensors.AgentSensorPlugin;
+import com.mineagents.sensors.npc.NPCAgent;
+import com.mineagents.sensors.npc.NPCManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -25,6 +28,7 @@ public class SensorWebSocketServer extends WebSocketServer {
     private final Set<WebSocket> authenticatedClients;
     private final Map<WebSocket, String> clientBotNames;
     private final String authToken;
+    private NPCManager npcManager; // NPC manager for spawning agents
 
     public SensorWebSocketServer(AgentSensorPlugin plugin, int port, String authToken) {
         super(new InetSocketAddress(port));
@@ -35,6 +39,14 @@ public class SensorWebSocketServer extends WebSocketServer {
         this.authToken = authToken;
 
         plugin.getLogger().info("[WebSocket] Initializing server on port " + port);
+    }
+
+    /**
+     * Set NPC manager
+     */
+    public void setNPCManager(NPCManager npcManager) {
+        this.npcManager = npcManager;
+        plugin.getLogger().info("[WebSocket] NPC Manager registered");
     }
 
     @Override
@@ -70,6 +82,14 @@ public class SensorWebSocketServer extends WebSocketServer {
                 handleBotRegistration(conn, data);
             } else if ("request_sensors".equals(type)) {
                 handleSensorRequest(conn, data);
+            } else if ("spawn_agent".equals(type)) {
+                handleSpawnAgent(conn, data);
+            } else if ("action".equals(type)) {
+                handleAction(conn, data);
+            } else if ("remove_agent".equals(type)) {
+                handleRemoveAgent(conn, data);
+            } else if ("heartbeat".equals(type)) {
+                handleHeartbeat(conn, data);
             } else {
                 plugin.getLogger().warning("[WebSocket] Unknown message type: " + type);
             }
@@ -224,6 +244,160 @@ public class SensorWebSocketServer extends WebSocketServer {
         response.put("type", "error");
         response.put("message", errorMessage);
         return response;
+    }
+
+    /**
+     * Handle spawn agent request from hub
+     */
+    private void handleSpawnAgent(WebSocket conn, Map<String, Object> data) {
+        if (!authenticatedClients.contains(conn)) {
+            conn.send(gson.toJson(createErrorResponse("Not authenticated")));
+            return;
+        }
+
+        if (npcManager == null) {
+            conn.send(gson.toJson(createErrorResponse("NPC Manager not initialized")));
+            return;
+        }
+
+        try {
+            String agentName = (String) data.get("agentName");
+            String agentType = (String) data.get("agentType");
+            Map<String, Object> locationData = (Map<String, Object>) data.get("location");
+
+            // Parse location
+            String worldName = (String) locationData.get("world");
+            double x = ((Number) locationData.get("x")).doubleValue();
+            double y = ((Number) locationData.get("y")).doubleValue();
+            double z = ((Number) locationData.get("z")).doubleValue();
+
+            org.bukkit.World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                world = Bukkit.getWorlds().get(0); // Default to main world
+            }
+
+            Location location = new Location(world, x, y, z);
+
+            // Spawn agent on main thread
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getLogger().info("[PLUGIN BRIDGE] Spawning agent " + agentName + " (" + agentType + ") at " + location);
+
+                NPCAgent agent = npcManager.spawnAgent(agentName, agentType, location);
+
+                if (agent != null) {
+                    // Send spawn confirmation to hub
+                    sendSpawnConfirm(conn, agent);
+                    plugin.getLogger().info("[PLUGIN BRIDGE] Successfully spawned " + agentName + " as " + agent.getPlayerName());
+                } else {
+                    conn.send(gson.toJson(createErrorResponse("Failed to spawn agent " + agentName)));
+                }
+            });
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "[WebSocket] Error spawning agent", e);
+            conn.send(gson.toJson(createErrorResponse("Error spawning agent: " + e.getMessage())));
+        }
+    }
+
+    /**
+     * Handle action command from hub
+     */
+    private void handleAction(WebSocket conn, Map<String, Object> data) {
+        if (!authenticatedClients.contains(conn)) {
+            conn.send(gson.toJson(createErrorResponse("Not authenticated")));
+            return;
+        }
+
+        if (npcManager == null) {
+            conn.send(gson.toJson(createErrorResponse("NPC Manager not initialized")));
+            return;
+        }
+
+        try {
+            String agentName = (String) data.get("agentName");
+            String actionType = (String) data.get("action");
+            Object params = data.get("params");
+
+            NPCAgent agent = npcManager.getAgent(agentName);
+
+            if (agent == null) {
+                plugin.getLogger().warning("[WebSocket] Action for unknown agent: " + agentName);
+                return;
+            }
+
+            // Execute action on main thread
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                agent.executeAction(actionType, params);
+            });
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "[WebSocket] Error handling action", e);
+        }
+    }
+
+    /**
+     * Handle remove agent request from hub
+     */
+    private void handleRemoveAgent(WebSocket conn, Map<String, Object> data) {
+        if (!authenticatedClients.contains(conn)) {
+            conn.send(gson.toJson(createErrorResponse("Not authenticated")));
+            return;
+        }
+
+        if (npcManager == null) {
+            return;
+        }
+
+        try {
+            String agentName = (String) data.get("agentName");
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                npcManager.removeAgent(agentName);
+                plugin.getLogger().info("[PLUGIN BRIDGE] Removed agent " + agentName);
+            });
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "[WebSocket] Error removing agent", e);
+        }
+    }
+
+    /**
+     * Handle heartbeat message
+     */
+    private void handleHeartbeat(WebSocket conn, Map<String, Object> data) {
+        // Just echo back
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "heartbeat");
+        response.put("timestamp", System.currentTimeMillis());
+        conn.send(gson.toJson(response));
+    }
+
+    /**
+     * Send spawn confirmation to hub
+     */
+    private void sendSpawnConfirm(WebSocket conn, NPCAgent agent) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", "spawn_confirm");
+        message.put("agentName", agent.getAgentName());
+        message.put("entityUUID", agent.getEntityUUID().toString());
+
+        // Location
+        Location loc = agent.getLocation();
+        Map<String, Object> location = new HashMap<>();
+        location.put("world", loc.getWorld().getName());
+        location.put("x", loc.getX());
+        location.put("y", loc.getY());
+        location.put("z", loc.getZ());
+        message.put("location", location);
+
+        // Player info
+        Map<String, Object> playerInfo = new HashMap<>();
+        playerInfo.put("realName", agent.getPlayerName());
+        playerInfo.put("uuid", agent.getUUID().toString());
+        message.put("playerInfo", playerInfo);
+
+        conn.send(gson.toJson(message));
+        plugin.getLogger().info("[PLUGIN BRIDGE] Sent spawn confirmation for " + agent.getAgentName());
     }
 
     /**
