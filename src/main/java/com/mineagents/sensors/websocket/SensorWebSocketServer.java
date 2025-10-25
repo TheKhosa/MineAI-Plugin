@@ -2,8 +2,8 @@ package com.mineagents.sensors.websocket;
 
 import com.google.gson.Gson;
 import com.mineagents.sensors.AgentSensorPlugin;
-import com.mineagents.sensors.npc.NPCAgent;
-import com.mineagents.sensors.npc.NPCManager;
+// PHASE 2: import com.mineagents.sensors.npc.NPCAgent;
+// PHASE 2: import com.mineagents.sensors.npc.NPCManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.java_websocket.WebSocket;
@@ -28,7 +28,7 @@ public class SensorWebSocketServer extends WebSocketServer {
     private final Set<WebSocket> authenticatedClients;
     private final Map<WebSocket, String> clientBotNames;
     private final String authToken;
-    private NPCManager npcManager; // NPC manager for spawning agents
+    // PHASE 2: private NPCManager npcManager; // NPC manager for spawning agents
 
     public SensorWebSocketServer(AgentSensorPlugin plugin, int port, String authToken) {
         super(new InetSocketAddress(port));
@@ -42,12 +42,12 @@ public class SensorWebSocketServer extends WebSocketServer {
     }
 
     /**
-     * Set NPC manager
+     * PHASE 2: Set NPC manager
      */
-    public void setNPCManager(NPCManager npcManager) {
-        this.npcManager = npcManager;
-        plugin.getLogger().info("[WebSocket] NPC Manager registered");
-    }
+    // public void setNPCManager(NPCManager npcManager) {
+    //     this.npcManager = npcManager;
+    //     plugin.getLogger().info("[WebSocket] NPC Manager registered");
+    // }
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
@@ -82,12 +82,13 @@ public class SensorWebSocketServer extends WebSocketServer {
                 handleBotRegistration(conn, data);
             } else if ("request_sensors".equals(type)) {
                 handleSensorRequest(conn, data);
-            } else if ("spawn_agent".equals(type)) {
-                handleSpawnAgent(conn, data);
-            } else if ("action".equals(type)) {
-                handleAction(conn, data);
-            } else if ("remove_agent".equals(type)) {
-                handleRemoveAgent(conn, data);
+            // PHASE 2: NPC message handlers
+            // } else if ("spawn_agent".equals(type)) {
+            //     handleSpawnAgent(conn, data);
+            // } else if ("action".equals(type)) {
+            //     handleAction(conn, data);
+            // } else if ("remove_agent".equals(type)) {
+            //     handleRemoveAgent(conn, data);
             } else if ("heartbeat".equals(type)) {
                 handleHeartbeat(conn, data);
             } else {
@@ -247,8 +248,9 @@ public class SensorWebSocketServer extends WebSocketServer {
     }
 
     /**
-     * Handle spawn agent request from hub
+     * PHASE 2: Handle spawn agent request from hub
      */
+    /*
     private void handleSpawnAgent(WebSocket conn, Map<String, Object> data) {
         if (!authenticatedClients.contains(conn)) {
             conn.send(gson.toJson(createErrorResponse("Not authenticated")));
@@ -298,10 +300,12 @@ public class SensorWebSocketServer extends WebSocketServer {
             conn.send(gson.toJson(createErrorResponse("Error spawning agent: " + e.getMessage())));
         }
     }
+    */
 
     /**
-     * Handle action command from hub
+     * PHASE 2: Handle action command from hub
      */
+    /*
     private void handleAction(WebSocket conn, Map<String, Object> data) {
         if (!authenticatedClients.contains(conn)) {
             conn.send(gson.toJson(createErrorResponse("Not authenticated")));
@@ -334,10 +338,12 @@ public class SensorWebSocketServer extends WebSocketServer {
             plugin.getLogger().log(Level.WARNING, "[WebSocket] Error handling action", e);
         }
     }
+    */
 
     /**
-     * Handle remove agent request from hub
+     * PHASE 2: Handle remove agent request from hub
      */
+    /*
     private void handleRemoveAgent(WebSocket conn, Map<String, Object> data) {
         if (!authenticatedClients.contains(conn)) {
             conn.send(gson.toJson(createErrorResponse("Not authenticated")));
@@ -360,6 +366,7 @@ public class SensorWebSocketServer extends WebSocketServer {
             plugin.getLogger().log(Level.WARNING, "[WebSocket] Error removing agent", e);
         }
     }
+    */
 
     /**
      * Handle heartbeat message
@@ -373,8 +380,9 @@ public class SensorWebSocketServer extends WebSocketServer {
     }
 
     /**
-     * Send spawn confirmation to hub
+     * PHASE 2: Send spawn confirmation to hub
      */
+    /*
     private void sendSpawnConfirm(WebSocket conn, NPCAgent agent) {
         Map<String, Object> message = new HashMap<>();
         message.put("type", "spawn_confirm");
@@ -399,6 +407,7 @@ public class SensorWebSocketServer extends WebSocketServer {
         conn.send(gson.toJson(message));
         plugin.getLogger().info("[PLUGIN BRIDGE] Sent spawn confirmation for " + agent.getAgentName());
     }
+    */
 
     /**
      * Get authenticated client count
