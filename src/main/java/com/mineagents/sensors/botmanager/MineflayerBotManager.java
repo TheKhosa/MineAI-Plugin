@@ -135,6 +135,7 @@ public class MineflayerBotManager {
      */
     public void autoSpawnBots(int count, String agentType) {
         plugin.getLogger().info("[BotManager] Auto-spawning " + count + " NPCs...");
+        plugin.getLogger().info("[BotManager] Using 10-second delay between spawns for chunk stability");
 
         for (int i = 0; i < count; i++) {
             boolean success = spawnBotWithRealUUID(agentType);
@@ -145,12 +146,15 @@ public class MineflayerBotManager {
                 plugin.getLogger().warning("[BotManager] Failed to spawn NPC " + (i + 1) + "/" + count);
             }
 
-            // Small delay between spawns
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+            // Wait for chunks to load before spawning next bot (stability)
+            if (i < count - 1) {  // Don't wait after the last bot
+                try {
+                    plugin.getLogger().info("[BotManager] Waiting 10 seconds for chunk loading and server stabilization...");
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
         }
 
