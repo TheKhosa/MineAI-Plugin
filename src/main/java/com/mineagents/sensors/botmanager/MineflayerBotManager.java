@@ -1,6 +1,7 @@
 package com.mineagents.sensors.botmanager;
 
 import com.mineagents.sensors.AgentSensorPlugin;
+import com.mineagents.sensors.uuid.UUIDFetcher;
 import org.bukkit.Bukkit;
 
 import java.io.*;
@@ -23,6 +24,7 @@ public class MineflayerBotManager {
     private final Map<String, BotInfo> botInfo = new ConcurrentHashMap<>();
     private final Path botsDirectory;
     private final int serverPort;
+    private final UUIDFetcher uuidFetcher;
 
     /**
      * Bot information for monitoring
@@ -45,6 +47,7 @@ public class MineflayerBotManager {
         this.plugin = plugin;
         this.botsDirectory = Paths.get(plugin.getDataFolder().getAbsolutePath(), "bots");
         this.serverPort = Bukkit.getServer().getPort();
+        this.uuidFetcher = new UUIDFetcher(plugin.getDataFolder());
 
         // Create bots directory
         try {
@@ -99,6 +102,59 @@ public class MineflayerBotManager {
             plugin.getLogger().log(Level.SEVERE, "[BotManager] Failed to spawn bot " + botName, e);
             return false;
         }
+    }
+
+    /**
+     * Spawn a new mineflayer bot with a real player UUID and name
+     */
+    public boolean spawnBotWithRealUUID(String agentType) {
+        try {
+            // Get a real UUID and player name
+            plugin.getLogger().info("[BotManager] Fetching real player UUID...");
+            UUIDFetcher.UUIDResult result = uuidFetcher.getNextValidUUID(50);
+
+            if (result == null) {
+                plugin.getLogger().warning("[BotManager] Could not find valid UUID after 50 attempts");
+                return false;
+            }
+
+            String playerName = result.getPlayerName();
+            plugin.getLogger().info("[BotManager] Found player: " + playerName);
+
+            // Spawn the bot with the real player name
+            return spawnBot(playerName, agentType);
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "[BotManager] Failed to spawn bot with real UUID", e);
+            return false;
+        }
+    }
+
+    /**
+     * Auto-spawn multiple NPCs with real UUIDs
+     */
+    public void autoSpawnBots(int count, String agentType) {
+        plugin.getLogger().info("[BotManager] Auto-spawning " + count + " NPCs...");
+
+        for (int i = 0; i < count; i++) {
+            boolean success = spawnBotWithRealUUID(agentType);
+
+            if (success) {
+                plugin.getLogger().info("[BotManager] Spawned NPC " + (i + 1) + "/" + count);
+            } else {
+                plugin.getLogger().warning("[BotManager] Failed to spawn NPC " + (i + 1) + "/" + count);
+            }
+
+            // Small delay between spawns
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        plugin.getLogger().info("[BotManager] Finished auto-spawning. Active bots: " + getBotCount());
     }
 
     /**

@@ -207,6 +207,7 @@ public class AgentSensorPlugin extends JavaPlugin {
                 sender.sendMessage("§e/agentsensor update §7- Check for updates from TeamCity");
                 sender.sendMessage("§e/agentsensor status §7- Show plugin status");
                 sender.sendMessage("§e/agentsensor sensors §7- List available sensors");
+                sender.sendMessage("§e/agentsensor spawnbots <count> §7- Spawn NPCs with real UUIDs");
                 return true;
             }
 
@@ -262,6 +263,36 @@ public class AgentSensorPlugin extends JavaPlugin {
                     sender.sendMessage("§e- Chunk Loading Status");
                     sender.sendMessage("§e- Player Proximity");
                     sender.sendMessage("§e- Item Spawn Tracking");
+                    return true;
+
+                case "spawnbots":
+                    if (botManager == null) {
+                        sender.sendMessage("§cBot Manager is not initialized!");
+                        return true;
+                    }
+
+                    if (args.length < 2) {
+                        sender.sendMessage("§cUsage: /agentsensor spawnbots <count>");
+                        sender.sendMessage("§eExample: /agentsensor spawnbots 5");
+                        return true;
+                    }
+
+                    try {
+                        int count = Integer.parseInt(args[1]);
+                        if (count < 1 || count > 20) {
+                            sender.sendMessage("§cCount must be between 1 and 20");
+                            return true;
+                        }
+
+                        sender.sendMessage("§aSpawning " + count + " NPC(s) with real player UUIDs...");
+                        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                            botManager.autoSpawnBots(count, "miner");
+                            sender.sendMessage("§aFinished spawning NPCs! Active bots: " + botManager.getBotCount());
+                        });
+
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage("§cInvalid number: " + args[1]);
+                    }
                     return true;
 
                 default:
