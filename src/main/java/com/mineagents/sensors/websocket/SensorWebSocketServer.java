@@ -2,6 +2,7 @@ package com.mineagents.sensors.websocket;
 
 import com.google.gson.Gson;
 import com.mineagents.sensors.AgentSensorPlugin;
+import com.mineagents.sensors.botmanager.MineflayerBotManager;
 // PHASE 2 (Option 2): import com.mineagents.sensors.npc.NPCAgent;
 // PHASE 2 (Option 2): import com.mineagents.sensors.npc.NPCManager;
 import org.bukkit.Bukkit;
@@ -28,6 +29,7 @@ public class SensorWebSocketServer extends WebSocketServer {
     private final Set<WebSocket> authenticatedClients;
     private final Map<WebSocket, String> clientBotNames;
     private final String authToken;
+    private MineflayerBotManager botManager;
     // PHASE 2 (Option 2): private NPCManager npcManager; // NPC manager for spawning agents
 
     public SensorWebSocketServer(AgentSensorPlugin plugin, int port, String authToken) {
@@ -39,6 +41,14 @@ public class SensorWebSocketServer extends WebSocketServer {
         this.authToken = authToken;
 
         plugin.getLogger().info("[WebSocket] Initializing server on port " + port);
+    }
+
+    /**
+     * Set Bot Manager
+     */
+    public void setBotManager(MineflayerBotManager botManager) {
+        this.botManager = botManager;
+        plugin.getLogger().info("[WebSocket] Bot Manager registered");
     }
 
     /**
@@ -82,6 +92,12 @@ public class SensorWebSocketServer extends WebSocketServer {
                 handleBotRegistration(conn, data);
             } else if ("request_sensors".equals(type)) {
                 handleSensorRequest(conn, data);
+            } else if ("spawn_bot".equals(type)) {
+                handleSpawnBot(conn, data);
+            } else if ("stop_bot".equals(type)) {
+                handleStopBot(conn, data);
+            } else if ("bot_action".equals(type)) {
+                handleBotAction(conn, data);
             // PHASE 2 (Option 2): NPC message handlers
             // } else if ("spawn_agent".equals(type)) {
             //     handleSpawnAgent(conn, data);
@@ -245,6 +261,136 @@ public class SensorWebSocketServer extends WebSocketServer {
         response.put("type", "error");
         response.put("message", errorMessage);
         return response;
+    }
+
+    /**
+     * Handle spawn bot request from ML training server
+     */
+    private void handleSpawnBot(WebSocket conn, Map<String, Object> data) {
+        if (!authenticatedClients.contains(conn)) {
+            conn.send(gson.toJson(createErrorResponse("Not authenticated")));
+            return;
+        }
+
+        if (botManager == null) {
+            conn.send(gson.toJson(createErrorResponse("Bot Manager not initialized")));
+            return;
+        }
+
+        try {
+            String botName = (String) data.get("botName");
+            String agentType = (String) data.get("agentType");
+
+            if (botName == null || botName.isEmpty()) {
+                conn.send(gson.toJson(createErrorResponse("Invalid bot name")));
+                return;
+            }
+
+            if (agentType == null || agentType.isEmpty()) {
+                agentType = "explorer"; // Default type
+            }
+
+            boolean success = botManager.spawnBot(botName, agentType);
+
+            Map<String, Object> response = new HashMap<>();
+            if (success) {
+                response.put("type", "spawn_bot_success");
+                response.put("botName", botName);
+                response.put("message", "Bot spawned successfully");
+                plugin.getLogger().info("[WebSocket] Spawned bot: " + botName);
+            } else {
+                response.put("type", "error");
+                response.put("message", "Failed to spawn bot " + botName);
+            }
+            conn.send(gson.toJson(response));
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "[WebSocket] Error spawning bot", e);
+            conn.send(gson.toJson(createErrorResponse("Error spawning bot: " + e.getMessage())));
+        }
+    }
+
+    /**
+     * Handle stop bot request
+     */
+    private void handleStopBot(WebSocket conn, Map<String, Object> data) {
+        if (!authenticatedClients.contains(conn)) {
+            conn.send(gson.toJson(createErrorResponse("Not authenticated")));
+            return;
+        }
+
+        if (botManager == null) {
+            conn.send(gson.toJson(createErrorResponse("Bot Manager not initialized")));
+            return;
+        }
+
+        try {
+            String botName = (String) data.get("botName");
+
+            if (botName == null || botName.isEmpty()) {
+                conn.send(gson.toJson(createErrorResponse("Invalid bot name")));
+                return;
+            }
+
+            boolean success = botManager.stopBot(botName);
+
+            Map<String, Object> response = new HashMap<>();
+            if (success) {
+                response.put("type", "stop_bot_success");
+                response.put("botName", botName);
+                response.put("message", "Bot stopped successfully");
+            } else {
+                response.put("type", "error");
+                response.put("message", "Bot not found: " + botName);
+            }
+            conn.send(gson.toJson(response));
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "[WebSocket] Error stopping bot", e);
+            conn.send(gson.toJson(createErrorResponse("Error stopping bot: " + e.getMessage())));
+        }
+    }
+
+    /**
+     * Handle bot action from ML training (forwarded to mineflayer bot via observation channel)
+     */
+    private void handleBotAction(WebSocket conn, Map<String, Object> data) {
+        if (!authenticatedClients.contains(conn)) {
+            conn.send(gson.toJson(createErrorResponse("Not authenticated")));
+            return;
+        }
+
+        try {
+            String botName = (String) data.get("botName");
+            String action = (String) data.get("action");
+            Object params = data.get("params");
+
+            if (botName == null || action == null) {
+                conn.send(gson.toJson(createErrorResponse("Missing botName or action")));
+                return;
+            }
+
+            // Forward action to the bot via registered WebSocket
+            Map<String, Object> actionMessage = new HashMap<>();
+            actionMessage.put("type", "action");
+            actionMessage.put("action", action);
+            actionMessage.put("params", params);
+
+            // Send to specific bot's connection
+            for (Map.Entry<WebSocket, String> entry : clientBotNames.entrySet()) {
+                if (entry.getValue().equals(botName)) {
+                    WebSocket botConn = entry.getKey();
+                    if (botConn.isOpen()) {
+                        botConn.send(gson.toJson(actionMessage));
+                        plugin.getLogger().fine("[WebSocket] Sent action '" + action + "' to bot " + botName);
+                    }
+                    break;
+                }
+            }
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "[WebSocket] Error handling bot action", e);
+        }
     }
 
     /**

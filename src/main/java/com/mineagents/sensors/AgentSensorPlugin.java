@@ -2,6 +2,7 @@ package com.mineagents.sensors;
 
 import com.mineagents.sensors.api.SensorAPI;
 // PHASE 2 (Option 2): import com.mineagents.sensors.npc.NPCManager;
+import com.mineagents.sensors.botmanager.MineflayerBotManager;
 import com.mineagents.sensors.tick.TickSynchronizer;
 import com.mineagents.sensors.updater.TeamCityUpdater;
 import com.mineagents.sensors.websocket.SensorBroadcaster;
@@ -33,6 +34,7 @@ public class AgentSensorPlugin extends JavaPlugin {
     private SensorWebSocketServer webSocketServer;
     private SensorBroadcaster sensorBroadcaster;
     private TickSynchronizer tickSynchronizer;
+    private MineflayerBotManager botManager;
     // PHASE 2 (Option 2): private NPCManager npcManager;
     private boolean updateCheckEnabled = true;
 
@@ -108,6 +110,13 @@ public class AgentSensorPlugin extends JavaPlugin {
         //     getLogger().info("[NPC Manager] Initialized and ready to spawn agents");
         // }
 
+        // Initialize Mineflayer Bot Manager
+        if (webSocketServer != null) {
+            botManager = new MineflayerBotManager(this);
+            webSocketServer.setBotManager(botManager);
+            getLogger().info("[BotManager] Initialized - Ready to spawn server-side mineflayer bots");
+        }
+
         // Start sensor broadcaster
         if (webSocketServer != null) {
             sensorBroadcaster = new SensorBroadcaster(this, webSocketServer, SENSOR_RADIUS, SENSOR_UPDATE_INTERVAL);
@@ -158,6 +167,16 @@ public class AgentSensorPlugin extends JavaPlugin {
         //         getLogger().log(Level.WARNING, "[NPC Manager] Error during shutdown", e);
         //     }
         // }
+
+        // Shutdown Bot Manager
+        if (botManager != null) {
+            try {
+                botManager.stopAllBots();
+                getLogger().info("[BotManager] All bots stopped");
+            } catch (Exception e) {
+                getLogger().log(Level.WARNING, "[BotManager] Error during shutdown", e);
+            }
+        }
 
         // Shutdown WebSocket server
         if (webSocketServer != null) {
@@ -221,6 +240,9 @@ public class AgentSensorPlugin extends JavaPlugin {
                     if (webSocketServer != null) {
                         sender.sendMessage("§eConnected Clients: §f" + webSocketServer.getAuthenticatedClientCount());
                         sender.sendMessage("§eRegistered Bots: §f" + webSocketServer.getRegisteredBotCount());
+                    }
+                    if (botManager != null) {
+                        sender.sendMessage("§eMineflayer Bots: §f" + botManager.getBotCount() + " running");
                     }
                     // PHASE 2 (Option 2): NPC status
                     // if (npcManager != null) {
