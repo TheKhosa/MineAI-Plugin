@@ -41,8 +41,8 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.21.1-R0.1-SNAPSHOT</version>
-            <classifier>remapped-mojang</classifier>
-            <scope>provided</scope>
+            <scope>system</scope>
+            <systemPath>${user.home}/.m2/repository/org/spigotmc/spigot/1.21.1-R0.1-SNAPSHOT/spigot-1.21.1-R0.1-SNAPSHOT.jar</systemPath>
         </dependency>
 
         <!-- Gson for JSON handling -->
