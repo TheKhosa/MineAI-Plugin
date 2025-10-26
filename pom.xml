@@ -20,29 +20,20 @@
     </properties>
 
     <repositories>
-        <!-- Spigot Repository -->
+        <!-- Paper Repository -->
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
     </repositories>
 
     <dependencies>
-        <!-- Spigot API -->
+        <!-- Paper API (includes Bukkit/Spigot APIs + Paper enhancements) -->
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Spigot (full) for NMS and CraftBukkit classes -->
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <version>1.21.1-R0.1-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${user.home}/.m2/repository/org/spigotmc/spigot/1.21.1-R0.1-SNAPSHOT/spigot-1.21.1-R0.1-SNAPSHOT.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Gson for JSON handling -->
