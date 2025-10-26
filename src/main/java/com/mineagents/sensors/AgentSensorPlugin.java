@@ -1,7 +1,7 @@
 package com.mineagents.sensors;
 
 import com.mineagents.sensors.api.SensorAPI;
-import com.mineagents.sensors.npc.NPCManager;
+// PHASE 2 (Option 2): import com.mineagents.sensors.npc.NPCManager;
 import com.mineagents.sensors.tick.TickSynchronizer;
 import com.mineagents.sensors.updater.TeamCityUpdater;
 import com.mineagents.sensors.websocket.SensorBroadcaster;
@@ -33,7 +33,7 @@ public class AgentSensorPlugin extends JavaPlugin {
     private SensorWebSocketServer webSocketServer;
     private SensorBroadcaster sensorBroadcaster;
     private TickSynchronizer tickSynchronizer;
-    private NPCManager npcManager;
+    // PHASE 2 (Option 2): private NPCManager npcManager;
     private boolean updateCheckEnabled = true;
 
     // TeamCity Configuration
@@ -101,12 +101,12 @@ public class AgentSensorPlugin extends JavaPlugin {
             getLogger().log(Level.SEVERE, "[WebSocket] Failed to start server", e);
         }
 
-        // Initialize NPC Manager
-        if (webSocketServer != null) {
-            npcManager = new NPCManager(this);
-            webSocketServer.setNPCManager(npcManager);
-            getLogger().info("[NPC Manager] Initialized and ready to spawn agents");
-        }
+        // PHASE 2 (Option 2): Initialize NPC Manager
+        // if (webSocketServer != null) {
+        //     npcManager = new NPCManager(this);
+        //     webSocketServer.setNPCManager(npcManager);
+        //     getLogger().info("[NPC Manager] Initialized and ready to spawn agents");
+        // }
 
         // Start sensor broadcaster
         if (webSocketServer != null) {
@@ -149,15 +149,15 @@ public class AgentSensorPlugin extends JavaPlugin {
             }
         }
 
-        // Shutdown NPC Manager
-        if (npcManager != null) {
-            try {
-                npcManager.shutdown();
-                getLogger().info("[NPC Manager] Shutdown complete");
-            } catch (Exception e) {
-                getLogger().log(Level.WARNING, "[NPC Manager] Error during shutdown", e);
-            }
-        }
+        // PHASE 2 (Option 2): Shutdown NPC Manager
+        // if (npcManager != null) {
+        //     try {
+        //         npcManager.shutdown();
+        //         getLogger().info("[NPC Manager] Shutdown complete");
+        //     } catch (Exception e) {
+        //         getLogger().log(Level.WARNING, "[NPC Manager] Error during shutdown", e);
+        //     }
+        // }
 
         // Shutdown WebSocket server
         if (webSocketServer != null) {
@@ -222,12 +222,13 @@ public class AgentSensorPlugin extends JavaPlugin {
                         sender.sendMessage("§eConnected Clients: §f" + webSocketServer.getAuthenticatedClientCount());
                         sender.sendMessage("§eRegistered Bots: §f" + webSocketServer.getRegisteredBotCount());
                     }
-                    if (npcManager != null) {
-                        sender.sendMessage("§eNPC Agents: §f" + npcManager.getAgentCount());
-                        Map<String, Integer> uuidStats = npcManager.getUUIDStats();
-                        sender.sendMessage("§eUUID Cache: §f" + uuidStats.get("validUUIDs") + " valid, " +
-                            uuidStats.get("invalidUUIDs") + " invalid");
-                    }
+                    // PHASE 2 (Option 2): NPC status
+                    // if (npcManager != null) {
+                    //     sender.sendMessage("§eNPC Agents: §f" + npcManager.getAgentCount());
+                    //     Map<String, Integer> uuidStats = npcManager.getUUIDStats();
+                    //     sender.sendMessage("§eUUID Cache: §f" + uuidStats.get("validUUIDs") + " valid, " +
+                    //         uuidStats.get("invalidUUIDs") + " invalid");
+                    // }
                     return true;
 
                 case "sensors":
