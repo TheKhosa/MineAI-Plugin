@@ -36,6 +36,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Spigot (full) for NMS and CraftBukkit classes -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Gson for JSON handling -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
