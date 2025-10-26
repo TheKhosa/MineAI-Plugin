@@ -19,8 +19,26 @@ public class MineflayerBotManager {
 
     private final AgentSensorPlugin plugin;
     private final Map<String, Process> botProcesses = new ConcurrentHashMap<>();
+    private final Map<String, BotInfo> botInfo = new ConcurrentHashMap<>();
     private final Path botsDirectory;
     private final int serverPort;
+
+    /**
+     * Bot information for monitoring
+     */
+    public static class BotInfo {
+        public String name;
+        public String agentType;
+        public long spawnedAt;
+        public boolean isAlive;
+
+        public BotInfo(String name, String agentType) {
+            this.name = name;
+            this.agentType = agentType;
+            this.spawnedAt = System.currentTimeMillis();
+            this.isAlive = true;
+        }
+    }
 
     public MineflayerBotManager(AgentSensorPlugin plugin) {
         this.plugin = plugin;
@@ -67,6 +85,9 @@ public class MineflayerBotManager {
             Process process = pb.start();
             botProcesses.put(botName, process);
 
+            // Track bot info
+            botInfo.put(botName, new BotInfo(botName, agentType));
+
             // Monitor bot output
             startOutputMonitor(botName, process);
 
@@ -88,6 +109,12 @@ public class MineflayerBotManager {
             return false;
         }
 
+        // Mark bot as dead
+        BotInfo info = botInfo.get(botName);
+        if (info != null) {
+            info.isAlive = false;
+        }
+
         process.destroy();
         try {
             process.waitFor();
@@ -102,6 +129,9 @@ public class MineflayerBotManager {
             plugin.getLogger().log(Level.WARNING, "Failed to delete bot script", e);
         }
 
+        // Remove from tracking
+        botInfo.remove(botName);
+
         plugin.getLogger().info("[BotManager] Stopped bot: " + botName);
         return true;
     }
@@ -111,6 +141,20 @@ public class MineflayerBotManager {
      */
     public int getBotCount() {
         return botProcesses.size();
+    }
+
+    /**
+     * Get all bot information for monitoring
+     */
+    public Map<String, BotInfo> getAllBotInfo() {
+        return new HashMap<>(botInfo);
+    }
+
+    /**
+     * Get specific bot info
+     */
+    public BotInfo getBotInfo(String botName) {
+        return botInfo.get(botName);
     }
 
     /**

@@ -237,6 +237,33 @@ public class SensorWebSocketServer extends WebSocketServer {
     }
 
     /**
+     * Broadcast agent connection status
+     */
+    public void broadcastAgentConnected(String agentName, String agentType) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", "agent_connected");
+        message.put("agentName", agentName);
+        message.put("agentType", agentType);
+        message.put("timestamp", System.currentTimeMillis());
+
+        broadcast(gson.toJson(message));
+        plugin.getLogger().info("[WebSocket] Broadcasted agent_connected: " + agentName);
+    }
+
+    /**
+     * Broadcast agent disconnection
+     */
+    public void broadcastAgentDisconnected(String agentName) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", "agent_disconnected");
+        message.put("agentName", agentName);
+        message.put("timestamp", System.currentTimeMillis());
+
+        broadcast(gson.toJson(message));
+        plugin.getLogger().info("[WebSocket] Broadcasted agent_disconnected: " + agentName);
+    }
+
+    /**
      * Broadcast sensor data to specific client
      */
     public void sendSensorData(WebSocket conn, String botName, Map<String, Object> sensorData) {
@@ -298,6 +325,9 @@ public class SensorWebSocketServer extends WebSocketServer {
                 response.put("botName", botName);
                 response.put("message", "Bot spawned successfully");
                 plugin.getLogger().info("[WebSocket] Spawned bot: " + botName);
+
+                // Broadcast agent connection to all monitoring clients
+                broadcastAgentConnected(botName, agentType);
             } else {
                 response.put("type", "error");
                 response.put("message", "Failed to spawn bot " + botName);
@@ -339,6 +369,9 @@ public class SensorWebSocketServer extends WebSocketServer {
                 response.put("type", "stop_bot_success");
                 response.put("botName", botName);
                 response.put("message", "Bot stopped successfully");
+
+                // Broadcast agent disconnection to all monitoring clients
+                broadcastAgentDisconnected(botName);
             } else {
                 response.put("type", "error");
                 response.put("message", "Bot not found: " + botName);
